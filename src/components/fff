@@ -1,0 +1,155 @@
+import React, { useState, useEffect} from "react";
+import { Form, Button } from "react-bootstrap";
+import axios from "axios";
+import { Link, Navigate } from "react-router-dom";
+import SocialButton from "./SocialButton";
+// import FacebookIcon from "@mui/icons-material/Facebook";
+import GoogleIcon from "@mui/icons-material/Google";
+import ReCAPTCHA from "react-google-recaptcha";
+import CryptoJS from "crypto-js";
+
+
+export default function Login() {
+    const [data, setData] = useState([]);
+    const [captcha, setcaptcha] = useState(0);
+    const [flag, setflag] = useState(0);
+    const [error, seterror] = useState("");
+    useEffect(() => {
+        console.log("inuseeffect");
+        axios.get("http://localhost:3001/users").then((res) => {
+            setData(res.data);
+            
+        });
+    }, []);
+
+    const checkdata = () => {
+        console.log(data);
+        let email = document.getElementById("email").value;
+        let password = document.getElementById("pass").value;
+        console.log(email + password);
+        data.forEach((ele) => {
+           
+            let bytes = CryptoJS.AES.decrypt(ele.password, 'secret key 123');
+            let decryptpass = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
+            if (email === ele.email && password === decryptpass) {
+                if (captcha) {
+                    setflag(1);
+                    localStorage.setItem("user", JSON.stringify(ele));
+                    console.log("successsss");
+                } else {
+                    alert("verify captcha");
+                }
+            }
+        });
+        if (!flag) {
+            seterror("Email or Password does not match");
+            console.log("hey")
+            // alert("Email or Password does not match")
+        }
+    };
+    
+    const handleSocialLogin = (user) => {
+        console.log("pass")
+        console.log(user);
+        let userlogin= data.find(x=>x.email===user._profile.email)
+        let userIndex = data.indexOf(userlogin)
+        console.log(userlogin)
+        console.log(userIndex)
+
+        if(userIndex +1){
+            localStorage.setItem('users',JSON.stringify(data[userIndex]));
+            setflag(1);
+        }
+        else{
+            let formData = {
+                name: user._profile.firstName,
+                lastname: user._profile.lastName,
+                userName: user._profile.id,
+                email: user._profile.email,
+                password: 'socialLogin',
+                budget:0,
+                expenses:[]
+              };
+              axios.post(`http://localhost:3001/users`,formData)
+            localStorage.setItem('users',JSON.stringify(formData));
+              setflag(1);
+        }
+          
+      };
+      
+      const handleSocialLoginFailure = (err) => {
+          console.log("failed")
+        console.error(err);
+      };
+
+
+    const verify = () => {
+        setcaptcha(1);
+    };
+
+    return (
+        <div>
+            {!flag ? (
+                <div
+                    className="container border border-dark rounded  pt-4 pb-3"
+                    style={{
+                        width: "400px",
+                        marginTop: "150px",
+                        backgroundColor: "whitesmoke",
+                    }}
+                >
+                    <Form>
+                        <h2 className="text-primary">
+                            Enter Details
+                        </h2>
+                        <Form.Group className="mb-3" controlId="formBasicEmail">
+                            <Form.Label className="float-start text-dark">
+                                Email address
+                            </Form.Label>
+                            <Form.Control type="email" placeholder="Enter email" id="email" />
+                        </Form.Group>
+
+                        <Form.Group className="mb-3" controlId="formBasicPassword">
+                            <Form.Label className="float-start text-dark">
+                                Password
+                            </Form.Label>
+                            <Form.Control type="password" placeholder="Password" id="pass" />
+                            <Form.Text className="text-muted">
+                                We'll never share your details with anyone.
+                            </Form.Text>
+                        </Form.Group>
+                        <ReCAPTCHA
+                            sitekey="6LeORzsdAAAAALZ7dTpqvsE3-vHiJfCDjzTgCW-M"
+                            onChange={verify}
+                        />
+
+                        <Button variant="success" onClick={() => checkdata()}>
+                            Login
+                        </Button>
+                        <Link to="/registration">
+                            <Button className="m-2">Sign up</Button>
+                        </Link>
+                        <br />
+                        <SocialButton 
+                                provider="google"
+                                appId="448668962546-dj23f81neca5mm6ovgt3d7598lui0qi5.apps.googleusercontent.com" 
+                                onLoginSuccess={handleSocialLogin}
+                                onLoginFailure={handleSocialLoginFailure}
+                                style={{color:"red"}}><GoogleIcon style={{color:"red", fontSize:35}} /> 
+                                Continue With Google
+                                </SocialButton>
+                        
+                           
+                        
+                      
+                            
+                    </Form>
+                   
+               
+                </div>
+            ) : (
+                <Navigate to="/Home" />
+            )}
+        </div>
+    );
+}

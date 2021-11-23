@@ -1,0 +1,24 @@
+{
+  "users": [
+    {
+      "name": "naveen",
+      "lastname": "patidar",
+      "userName": "naveenpat",
+      "email": "naveen@gmail.com",
+      "password": "U2FsdGVkX1+nvRrQe+HMybSyNep5cacIL9PXaFIaUFY=",
+      "budget": 0,
+      "expenses": [],
+      "id": 2
+    },
+    {
+      "name": "Arpan",
+      "lastname": "Jain",
+      "userName": "104516334916429706473",
+      "email": "oroarpanjain7@gmail.com",
+      "password": "socialLogin",
+      "budget": 5000,
+      "expenses": [],
+      "id": 3
+    }
+  ]
+}
